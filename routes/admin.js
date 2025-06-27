@@ -117,9 +117,40 @@ adminRouter.put("/createCourse" , adminMiddleware, async function(req,res){
     })
 })
 
-adminRouter.get("/course/bulk" , function(req,res){
+
+adminRouter.put("/Course" , adminMiddleware, async function(req,res){
+    const adminId = req.userId;
+    const { title , description , price ,  image_url , courseId } = req.body;
+
+    const course = await courseModel.updateOne({
+        _id : courseId,
+        creatorId : adminId 
+    }, {
+        title,
+        description, 
+        price,  
+        image_url,
+        creatorId : adminId
+    })
+
+
     res.json({
-        message: "You're signed up"
+        message: "course updated",
+        courseId : course._id
+    })
+})
+
+adminRouter.get("/course/bulk" , adminMiddleware , async function(req,res){
+
+    const courses = await courseModel.findOne({
+    
+        createrId : adminId 
+    });
+
+
+    res.json({
+        message: "courses view",
+        courses
     })
 })
 
