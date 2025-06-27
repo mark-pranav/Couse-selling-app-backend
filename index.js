@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const { userRouter } = require('./routes/user');
 const { courseRouter } = require('./routes/course');
 const { adminRouter } = require('./routes/admin');
-
+require('dotenv').config()
 
 
 const app = express();
@@ -16,7 +16,7 @@ app.use("/admin" , adminRouter);
 
 
 async function main(){
-    await mongoose.connect("mongodb+srv://admin:tR2udl4Yz18snT1E@cluster0.uwlhvre.mongodb.net/course-selling-app");
+    await mongoose.connect(process.env.MONGO_URL);
     app.listen(3000);
     console.log("Listening on port 3000")
 

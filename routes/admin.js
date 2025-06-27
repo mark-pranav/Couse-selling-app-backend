@@ -1,16 +1,15 @@
 const {Router } = require("express");
 const adminRouter = Router();
-const { adminModel } = require("../db")
+const { adminModel, courseModel } = require("../db")
 const {z} = require('zod');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-
-const JWT_ADMIN_SECRET = "IamBoss15422";
-
-
+const { JWT_ADMIN_SECRET } = require("../config");
+const { adminMiddleware } = require("../middleware/admin");
 
 
 adminRouter.post("/signup" , async function(req,res){
+
    const requireBody = z.object({
         email : z.string().min(5).max(50).email(),
         firstName : z.string().min(3).max(50),
@@ -73,7 +72,7 @@ adminRouter.post("/signup" , async function(req,res){
 adminRouter.post("/signin" , async function(req,res){
     const { email , password } = req.body;
 
-    const admin = await userModel.findOne({
+    const admin = await adminModel.findOne({
         email : email
     });
     if(!admin){
@@ -99,9 +98,22 @@ adminRouter.post("/signin" , async function(req,res){
     }
 })
 
-adminRouter.put("/createCourse" , function(req,res){
+adminRouter.put("/createCourse" , adminMiddleware, async function(req,res){
+    const adminId = req.userId;
+    const { title , description , price ,  image_url } = req.body;
+
+    const course = await courseModel.create({
+        title,
+        description, 
+        price,  
+        image_url,
+        creatorId : adminId
+    })
+
+
     res.json({
-        message: "You're signed up"
+        message: "course created",
+        courseId : course._id
     })
 })
 
@@ -110,9 +122,6 @@ adminRouter.get("/course/bulk" , function(req,res){
         message: "You're signed up"
     })
 })
-
-
-
 
 
 

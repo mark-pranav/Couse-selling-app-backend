@@ -4,8 +4,8 @@ const { userModel } = require("../db");
 const z = require("zod");
 const  bcrypt  = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { JWT_USER_SECRET } = require("../config");
 
-const JWT_USER_SECRET = "PRANAV252002";
 
 userRouter.post("/signup", async function (req, res) {
     // form field validation using zod 
