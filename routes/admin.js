@@ -4,8 +4,11 @@ const { adminModel, courseModel } = require("../db")
 const {z} = require('zod');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const { JWT_ADMIN_SECRET } = require("../config");
+const  { JWT_ADMIN_SECRET } = require("../config");
 const { adminMiddleware } = require("../middleware/admin");
+const { mongoose } = require('mongoose');
+const course = require("./course");
+
 
 
 adminRouter.post("/signup" , async function(req,res){
@@ -98,7 +101,7 @@ adminRouter.post("/signin" , async function(req,res){
     }
 })
 
-adminRouter.put("/createCourse" , adminMiddleware, async function(req,res){
+adminRouter.post("/createCourse" , adminMiddleware, async function(req,res){
     const adminId = req.userId;
     const { title , description , price ,  image_url } = req.body;
 
@@ -122,17 +125,27 @@ adminRouter.put("/Course" , adminMiddleware, async function(req,res){
     const adminId = req.userId;
     const { title , description , price ,  image_url , courseId } = req.body;
 
-    const course = await courseModel.updateOne({
-        _id : courseId,
-        creatorId : adminId 
-    }, {
-        title,
-        description, 
-        price,  
-        image_url,
-        creatorId : adminId
-    })
+    
+    const course = await courseModel.findOne({
+        _id: courseId,
+        creatorId: adminId
+    });
 
+    if(!course){
+         return res.status(403).json({
+            message: "course is not found or you not authorized"
+        })
+    }
+
+    await courseModel.updateOne({
+        _id: courseId,
+        creatorId: adminId,
+    }, {
+        title: title || course.title,
+        description: description || course.description,
+        image_url: image_url || course.image_url,
+        price: price || course.price,
+    })
 
     res.json({
         message: "course updated",
@@ -141,10 +154,10 @@ adminRouter.put("/Course" , adminMiddleware, async function(req,res){
 })
 
 adminRouter.get("/course/bulk" , adminMiddleware , async function(req,res){
-
-    const courses = await courseModel.findOne({
+    const adminId = req.userId;
+    const courses = await courseModel.find({
     
-        createrId : adminId 
+        creatorId : new mongoose.Types.ObjectId(adminId)
     });
 
 
@@ -160,3 +173,5 @@ adminRouter.get("/course/bulk" , adminMiddleware , async function(req,res){
 module.exports = {
     adminRouter:adminRouter
 }
+
+console.log("JWT_ADMIN_SECRET:", JWT_ADMIN_SECRET); // Should print your secret
